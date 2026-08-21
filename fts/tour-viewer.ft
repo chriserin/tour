@@ -92,3 +92,35 @@ Feature: tour viewer
     When I launch `tour` on it
     Then the viewer opens normally
     And landing on the affected slide shows the location error instead of its file:line
+
+  @ft:27
+  Scenario: Quitting leaves no trace in the terminal's scrollback
+    Given I am viewing a tour
+    When I press the quit key
+    Then my terminal looks exactly as it did before I launched `tour`
+    And none of the viewer's screens remain in my scrollback history
+
+  @ft:28
+  Scenario: The title bar shows the current slide's code location
+    Given the viewer is showing a slide pointing at "lib/app/auth.ex:42"
+    When I look at the title bar
+    Then it shows "auth.ex:42", not the full path "lib/app/auth.ex:42"
+
+  @ft:29
+  Scenario: The status bar shows the tour's own filename
+    Given the viewer is showing a tour opened from "auth-refactor.tour"
+    When I look at the status bar
+    Then it shows "auth-refactor.tour"
+
+  @ft:30
+  Scenario: The narration has margin on every side
+    Given the viewer is showing a slide
+    When I look at the body
+    Then the narration is not flush against the title bar, the status bar, or the terminal's edges
+
+  @ft:31
+  Scenario: The title and status bars are visually distinct from each other and the body
+    Given the viewer is showing a slide on a terminal that supports color
+    When I look at the screen
+    Then the title bar and status bar each have their own background color
+    And neither matches the body's background
