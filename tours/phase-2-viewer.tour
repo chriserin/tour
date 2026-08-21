@@ -1,0 +1,62 @@
+@ ../cmd/root.go:36
+Entry point: loads the tour, locates Neovim, builds the model, runs it.
+---
+@ ../viewer/load.go:22
+Reuses Parse/ValidateLocations — same validation as `tour parse`, no second path.
+---
+@ ../viewer/locate.go:29
+Three-step Neovim lookup: process $NVIM, tmux $NVIM, then --nvim.
+---
+@ ../viewer/model.go:57
+New sets up slide 0's state; Init can't mutate the model, only return a Cmd.
+---
+@ ../viewer/model.go:167
+gotoSlide always sets nvimErr definitively — no stale error left over.
+---
+@ ../viewer/markdown.go:19
+Markdown rendered via glamour, re-run whenever the pane resizes.
+---
+@ ../viewer/vim.go:40
+Jump is a Lua script, file/line passed as real args — no escaping needed.
+---
+@ ../viewer/model.go:112
+g-prefix keys (gg, g3⏎) are a small inline state machine, not a type.
+---
+@ ../viewer/model.go:244
+Alt screen: quitting restores the terminal exactly as it was.
+---
+@ ../viewer/model.go:254
+Title bar: current code location + position, replaced by errors when broken.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+mollit anim id est laborum.
+

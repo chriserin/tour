@@ -1,0 +1,14 @@
+@ ../viewer/model.go:244
+Quitting now restores the terminal exactly as it was — alt screen.
+---
+@ ../viewer/model.go:49
+256-color indices, not base ANSI — themes remap those and killed contrast.
+---
+@ ../viewer/model.go:39
+Body now gets margin on every side.
+---
+@ ../viewer/model.go:254
+Title bar shows the current code location, not the tour filename.
+---
+@ ../viewer/model.go:270
+Tour filename moved down here to make room.

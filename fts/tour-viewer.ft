@@ -1,0 +1,94 @@
+Feature: tour viewer
+  As a reviewer
+  I want to step through a tour's slides while Neovim follows along
+  So that I can read a narrated walkthrough of a code change
+
+  @ft:13
+  Scenario: Launching shows the first slide
+    Given a valid .tour file with three slides
+    When I launch `tour` on it
+    Then it displays the first slide's narration
+    And it shows "1 of 3" as the position
+
+  @ft:14
+  Scenario: Advancing to the next slide
+    Given the viewer is showing slide 1 of 3
+    When I press the next-slide key
+    Then it displays slide 2's narration
+    And it shows "2 of 3" as the position
+
+  @ft:15
+  Scenario: Going back to the previous slide
+    Given the viewer is showing slide 2 of 3
+    When I press the previous-slide key
+    Then it displays slide 1's narration
+    And it shows "1 of 3" as the position
+
+  @ft:16
+  Scenario: Stepping past the last slide is a no-op
+    Given the viewer is showing the last slide
+    When I press the next-slide key
+    Then it still shows the last slide
+
+  @ft:17
+  Scenario: Stepping before the first slide is a no-op
+    Given the viewer is showing the first slide
+    When I press the previous-slide key
+    Then it still shows the first slide
+
+  @ft:18
+  Scenario: Jumping directly to a slide number
+    Given the viewer is showing slide 1 of 9
+    When I enter the jump-to-slide command for slide 5
+    Then it displays slide 5's narration directly, without stepping through 2, 3, and 4
+
+  @ft:19
+  Scenario: Jumping to the first slide
+    Given the viewer is showing the last slide of a multi-slide tour
+    When I press the jump-to-first-slide key
+    Then it displays the first slide's narration
+
+  @ft:20
+  Scenario: Jumping to the last slide
+    Given the viewer is showing the first slide of a multi-slide tour
+    When I press the jump-to-last-slide key
+    Then it displays the last slide's narration
+
+  @ft:21
+  Scenario: Scrolling the body does not change the current slide
+    Given the viewer is showing slide 2 of 3 with narration too long to fit on screen
+    When I press the scroll-down key
+    Then it still shows "2 of 3" as the position
+
+  @ft:22
+  Scenario: Scroll position resets when the slide changes
+    Given the viewer is showing slide 1 scrolled partway down its narration
+    When I advance to slide 2
+    Then slide 2's narration is shown from the top
+
+  @ft:23
+  Scenario: Advancing a slide jumps Neovim to its location
+    Given the viewer is connected to a running Neovim
+    When I advance to a slide pointing at "lib/app.rb:42"
+    Then Neovim's cursor moves to lib/app.rb line 42
+
+  @ft:24
+  Scenario: No Neovim session found still shows the narration
+    Given no Neovim session can be located
+    When I launch `tour` on a valid tour file
+    Then it displays the first slide's narration
+    And it clearly indicates that no Neovim session was found
+
+  @ft:25
+  Scenario: A structural error prevents the tour from opening
+    Given a .tour file with a structural error
+    When I launch `tour` on it
+    Then it reports every structural error found
+    And it does not open the viewer
+
+  @ft:26
+  Scenario: A location error does not prevent the tour from opening
+    Given a .tour file where one slide's location does not resolve
+    When I launch `tour` on it
+    Then the viewer opens normally
+    And landing on the affected slide shows the location error instead of its file:line

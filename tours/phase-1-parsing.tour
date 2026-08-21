@@ -1,0 +1,59 @@
+@ ../cmd/root.go
+Phase 1 stands up the CLI scaffolding, not just the file parser: a
+`cobra` root command named `tour`. Every later phase (the viewer,
+`agent-instructions`, `version`) adds a command to this same tree
+rather than standing up its own — this is the one place that happens.
+---
+@ ../tourfile/parse.go:33
+The whole grammar comes down to one regex: `@ file:line`, with the
+`:line` group optional. When it's omitted, the slide defaults to line
+1 — useful for a slide that's about a whole file rather than one spot
+in it.
+---
+@ ../tourfile/parse.go:39
+`Parse` scans the file in blocks separated by `---` lines. Each block
+is handed to `parseBlock` independently, and parsing never stops at
+the first bad block — it just moves on to the next `---` and keeps
+going, so a single `tour parse` run can report every structural
+problem in the file at once instead of one-at-a-time as an author
+fixes and reruns.
+---
+@ ../tourfile/parse.go:76
+`parseBlock` finds the first non-blank line of the block, requires it
+to match the `@ file:line` shape, and treats everything after it as
+narration text (`strings.TrimSpace` on the joined remainder — trims
+the outer whitespace but leaves internal blank lines and paragraph
+breaks alone).
+---
+@ ../tourfile/validate.go:25
+`ValidateLocations` is deliberately separate from `Parse` — it's the
+part that needs the filesystem. Every slide's file is resolved
+relative to `tourDir` (the tour file's own directory), never the
+process's working directory, so a tour stays correct no matter where
+`tour` is invoked from.
+---
+@ ../cmd/parse.go:29
+This is where the two pieces come together: `runParse` calls
+`tourfile.Parse`, then `tourfile.ValidateLocations` against the tour
+file's own directory, then prints a report — slide count, each
+slide's location exactly as the author wrote it, and every error
+found. A non-zero return value here is what turns into `tour parse`'s
+exit code, for CI and pre-commit use.
+---
+@ ../cmd/parse.go:65
+The narration preview shown for each slide is truncated by rune, not
+by byte, and only to the first line — the two details that make a
+"first line, `...` if there's more" summary actually correct for
+arbitrary multi-paragraph UTF-8 narration instead of just usually
+correct.
+---
+@ ../main.go:10
+`main` is the only place a `tourfile`/`cmd` error becomes a process
+exit code. Everything below this line already reported what went
+wrong to stdout; this just decides whether the process exits 0 or 1.
+---
+@ ../cmd/parse_test.go:33
+Every scenario in `fts/tour-parse.ft` has exactly one test like this
+one, tagged with its `@ft:<id>` immediately above the function. `ft
+sync` found this tag and linked `TestParse_WellFormedTour` to
+scenario 1 automatically — nothing hand-registered the connection.

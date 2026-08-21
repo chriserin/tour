@@ -1,0 +1,84 @@
+Feature: tour parse
+  As an author of a tour
+  I want to check that my .tour file is valid
+  So that I can fix mistakes before sharing or viewing it
+
+  @ft:1
+  Scenario: Parsing a well-formed tour file
+    Given a .tour file with three valid slides
+    When  I run `tour parse` on it
+    Then  it prints the number of slides found
+    And   it lists each slide's file:line with a narration preview
+    And   it exits successfully
+
+  @ft:2
+  Scenario: A slide missing its location line
+    Given a .tour file where a slide has no "@ file:line" line
+    When  I run `tour parse` on it
+    Then  it reports a structural error naming the line in the tour file
+    And   it exits with a non-zero status
+
+  @ft:3
+  Scenario: Multiple structural errors are all reported at once
+    Given a .tour file with two malformed slides
+    When  I run `tour parse` on it
+    Then  it reports an error for each malformed slide, not just the first
+    And   those errors are ordered by the slide number
+
+  @ft:4
+  Scenario: A slide pointing at a file that doesn't exist
+    Given a .tour file with a slide referencing a file that does not exist
+    When  I run `tour parse` on it
+    Then  it reports a location error naming that slide
+    And   it exits with a non-zero status
+
+  @ft:5
+  Scenario: A slide pointing past the end of its file
+    Given a .tour file with a slide whose line number is beyond the end of the referenced file
+    When  I run `tour parse` on it
+    Then  it reports a location error naming that slide
+    And   it exits with a non-zero status
+
+  @ft:6
+  Scenario: A location with no line number defaults to the first line
+    Given a .tour file with a slide written as "@ path/to/file.rb" with no line number
+    When  I run `tour parse` on it
+    Then  the slide is listed pointing at line 1
+
+  @ft:7
+  Scenario: File paths resolve relative to the tour file, not the working directory
+    Given a .tour file that references another file with a relative path
+    When  I run `tour parse` on it from a different working directory
+    Then  the reference resolves relative to the tour file's own directory
+
+  @ft:8
+  Scenario: The listed location matches what was written in the tour file
+    Given a .tour file with a slide written as "@ ../lib/app/auth.ex:42"
+    When  I run `tour parse` on it from a different working directory
+    Then  the listed location for that slide is "../lib/app/auth.ex:42"
+    And   it is not shown as an absolute path
+
+  @ft:9
+  Scenario: Slide locations are column-aligned
+    Given a valid .tour file whose slides have file:line locations of different lengths
+    When  I run `tour parse` on it
+    Then  every slide's narration preview starts in the same column
+
+  @ft:10
+  Scenario: A successful parse is shown in green on a terminal
+    Given a valid .tour file
+    When  I run `tour parse` on it in a terminal
+    Then  the slide count line is printed in bold green
+
+  @ft:11
+  Scenario: Slide locations are colored distinctly from their narration
+    Given a valid .tour file
+    When  I run `tour parse` on it in a terminal
+    Then  each slide's file:line is printed in a color distinct from its narration preview
+
+  @ft:12
+  Scenario: No color codes appear when output is not a terminal
+    Given a valid .tour file
+    When  I run `tour parse` on it with output piped, not to a terminal
+    Then  the output contains no ANSI escape codes
+
