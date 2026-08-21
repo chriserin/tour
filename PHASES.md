@@ -46,7 +46,7 @@ implementation/VIEWER.md's Bubble Tea model section.
 wired in as its own subcommand. Independent of phases 1–2; can be built
 in parallel.
 
-## 4. Version and completion — todo
+## 4. Version and completion — done
 
 `tour version` and `tour completion <shell>` (per
 [implementation/CLI.md](implementation/CLI.md)'s Version reporting

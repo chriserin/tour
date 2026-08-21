@@ -112,3 +112,22 @@ behavior, rather than against `cmd/`.
 tested directly. They're covered by whatever end-to-end/CLI-invocation
 tests exist once the subordinate packages are built (see each package's
 own implementation doc for what's unit tested there).
+
+**A cobra gotcha worth knowing about**: `cmd/parse_test.go`'s `runTour`
+helper calls `rootCmd.Execute()` directly, reusing the same package-level
+`rootCmd` across many tests in one process — fine for every command
+except `completion`. Cobra's default `completion` subcommand is added
+lazily, the first time `Execute()` ever runs
+(`InitDefaultCompletionCmd`), and at that moment it captures
+`cmd.OutOrStdout()` into a closure *once* rather than resolving it fresh
+on each invocation. That's invisible to a real `tour` process (`Execute()`
+runs exactly once per process), but in a test binary that calls
+`Execute()` many times against the same `rootCmd`, only the *first-ever*
+`Execute()` call in the whole test binary sees the completion command's
+real output — every later `runTour(t, "completion", ...)` silently
+writes to a buffer no one is still reading, with no error. The fix in
+`cmd/completion_test.go`: call `rootCmd.GenBashCompletionV2` directly
+instead of going through `Execute()`, which is also arguably the more
+honest test — it verifies cobra's generator produces a real script, not
+that our own dispatch glue (which cobra owns entirely for this command)
+behaves a certain way.

@@ -1,0 +1,18 @@
+Feature: tour version and completion
+  As a user of the tour CLI
+  I want to check its version and generate shell completions
+  So that I know what I'm running and can tab-complete its commands
+
+  @ft:33
+  Scenario: Printing the version
+    Given the tour CLI
+    When I run `tour version`
+    Then it exits successfully
+    And it prints a non-empty version string to stdout
+
+  @ft:34
+  Scenario: Generating a shell completion script
+    Given the tour CLI
+    When I run `tour completion bash`
+    Then it exits successfully
+    And it prints a non-empty completion script to stdout
