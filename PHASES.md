@@ -38,7 +38,7 @@ the box's top border). Current `View` renders the same three regions —
 title bar, body, status line — without the border itself; see
 implementation/VIEWER.md's Bubble Tea model section.
 
-## 3. Agent instructions command — todo
+## 3. Agent instructions command — done
 
 `tour agent-instructions` (per
 [design/AGENT-INSTRUCTIONS.md](design/AGENT-INSTRUCTIONS.md) and

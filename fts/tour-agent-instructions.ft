@@ -1,0 +1,12 @@
+Feature: tour agent-instructions
+  As an AI agent authoring a tour
+  I want to fetch the tour file format spec at runtime
+  So that I can write a valid .tour file without needing prior knowledge of the format
+
+  @ft:32
+  Scenario: Printing the format specification
+    Given the tour CLI
+    When  I run `tour agent-instructions`
+    Then  it exits successfully
+    And   it prints the instructions embedded in the binary
+
