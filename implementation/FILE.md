@@ -61,6 +61,11 @@ absent, `Slide.Line` is set to `1` at parse time, so nothing downstream
 (validation, the jump command) needs to know the line was ever omitted;
 `@ file` and `@ file:1` produce an identical `Slide`.
 
+This regexp is superseded by [implementation/SCROLL.md](./SCROLL.md)'s
+Grammar section, which adds a `scroll` field and relaxes `\d+` to
+`\d*` so an empty `line` (`@ file:`) defaults the same way an absent
+one does, rather than being malformed.
+
 ## Location validation
 
 Separate from structural parsing — this step needs the filesystem, so it

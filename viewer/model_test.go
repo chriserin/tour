@@ -27,12 +27,13 @@ type fakeNvim struct {
 }
 
 type fakeJump struct {
-	file string
-	line int
+	file   string
+	line   int
+	scroll *int
 }
 
-func (f *fakeNvim) Jump(file string, line int) error {
-	f.jumps = append(f.jumps, fakeJump{file, line})
+func (f *fakeNvim) Jump(file string, line int, scroll *int) error {
+	f.jumps = append(f.jumps, fakeJump{file, line, scroll})
 	return f.err
 }
 
@@ -267,6 +268,55 @@ func TestAdvancingJumpsNeovimToItsLocation(t *testing.T) {
 	last := nvim.jumps[len(nvim.jumps)-1]
 	if !strings.HasSuffix(last.file, "lib/app.rb") || last.line != 42 {
 		t.Errorf("expected the jump to target lib/app.rb:42, got %+v", last)
+	}
+}
+
+// @ft:39
+func TestAdvancingToAScrollOffsetSlidePositionsTheWindow(t *testing.T) {
+	nvim := &fakeNvim{}
+	scroll := 4
+	s := []tourfile.Slide{
+		{Index: 1, File: "lib/first.rb", Line: 1, Text: "First."},
+		{Index: 2, File: "lib/app.rb", Line: 42, Scroll: &scroll, Text: "Second."},
+	}
+	m := New("test.tour", "/tour/dir", s, nil, nvim, nil)
+	if cmd := m.Init(); cmd != nil {
+		if msg := cmd(); msg != nil {
+			updated, _ := m.Update(msg)
+			m = updated.(Model)
+		}
+	}
+	m = sized(m)
+
+	m = press(m, key('n')) // advance to the scroll-offset slide
+
+	last := nvim.jumps[len(nvim.jumps)-1]
+	if last.scroll == nil || *last.scroll != 4 {
+		t.Errorf("expected the jump to carry a scroll offset of 4, got %+v", last)
+	}
+}
+
+// @ft:40
+func TestAdvancingWithNoScrollOffsetLeavesNeovimDefaultAlone(t *testing.T) {
+	nvim := &fakeNvim{}
+	s := []tourfile.Slide{
+		{Index: 1, File: "lib/first.rb", Line: 1, Text: "First."},
+		{Index: 2, File: "lib/app.rb", Line: 42, Text: "Second."},
+	}
+	m := New("test.tour", "/tour/dir", s, nil, nvim, nil)
+	if cmd := m.Init(); cmd != nil {
+		if msg := cmd(); msg != nil {
+			updated, _ := m.Update(msg)
+			m = updated.(Model)
+		}
+	}
+	m = sized(m)
+
+	m = press(m, key('n')) // advance to the slide with no scroll offset
+
+	last := nvim.jumps[len(nvim.jumps)-1]
+	if last.scroll != nil {
+		t.Errorf("expected no scroll offset to be sent, got %+v", last)
 	}
 }
 

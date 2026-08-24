@@ -124,3 +124,21 @@ Feature: tour viewer
     When I look at the screen
     Then the title bar and status bar each have their own background color
     And neither matches the body's background
+
+  @ft:39
+  Scenario: Advancing to a slide with an explicit scroll offset positions the window
+    Given the viewer is connected to a running Neovim
+    When I advance to a slide pointing at "lib/app.rb:42:4"
+    Then Neovim's window is scrolled so line 38 is at the top
+
+  @ft:40
+  Scenario: A slide with no scroll offset leaves Neovim's own scrolling behavior alone
+    Given the viewer is connected to a running Neovim
+    When I advance to a slide pointing at "lib/app.rb:42" with no scroll offset
+    Then Neovim only moves the cursor, without overriding the window's scroll position
+
+  @ft:41
+  Scenario: A scroll offset larger than the target line clamps to the top of the file
+    Given the viewer is connected to a running Neovim
+    When I advance to a slide pointing at "lib/app.rb:3:10"
+    Then Neovim's window is scrolled so line 1 is at the top

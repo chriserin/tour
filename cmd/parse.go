@@ -83,7 +83,7 @@ func formatSuccess(renderer *lipgloss.Renderer, slides []tourfile.Slide) string 
 	locs := make([]string, len(slides))
 	width := 0
 	for i, s := range slides {
-		locs[i] = fmt.Sprintf("%s:%d", s.File, s.Line)
+		locs[i] = formatLocation(s)
 		if n := utf8.RuneCountInString(locs[i]); n > width {
 			width = n
 		}
@@ -93,6 +93,17 @@ func formatSuccess(renderer *lipgloss.Renderer, slides []tourfile.Slide) string 
 		fmt.Fprintf(&b, "%s%s  %s\n", locationStyle.Render(locs[i]), pad, preview(s.Text, previewRunes))
 	}
 	return b.String()
+}
+
+// formatLocation renders a slide's location the same shape it would be
+// authored in — file:line, with a trailing :scroll only when the slide gave
+// one (per design/SCROLL.md, an unspecified scroll isn't shown as ":0" or
+// any other stand-in value).
+func formatLocation(s tourfile.Slide) string {
+	if s.Scroll != nil {
+		return fmt.Sprintf("%s:%d:%d", s.File, s.Line, *s.Scroll)
+	}
+	return fmt.Sprintf("%s:%d", s.File, s.Line)
 }
 
 // mergeErrors combines structural and location errors into one list of

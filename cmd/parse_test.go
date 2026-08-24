@@ -335,6 +335,76 @@ func TestParse_SlideLocationsColoredDistinctlyFromNarration(t *testing.T) {
 	}
 }
 
+// @ft:35
+func TestParse_LocationWithScrollOffsetShownAsWritten(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "lib", "app", "auth.ex"), strings.Repeat("line\n", 50))
+	writeFile(t, filepath.Join(dir, "example.tour"), `@ lib/app/auth.ex:42:4
+Narration.
+`)
+
+	out, err := runTour(t, "parse", filepath.Join(dir, "example.tour"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v\noutput:\n%s", err, out)
+	}
+	if !strings.Contains(out, "lib/app/auth.ex:42:4") {
+		t.Errorf("expected the listed location to include the scroll offset, got:\n%s", out)
+	}
+}
+
+// @ft:36
+func TestParse_EmptyLineWithScrollOffsetDefaultsToLineOne(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "lib", "app", "auth.ex"), strings.Repeat("line\n", 50))
+	writeFile(t, filepath.Join(dir, "example.tour"), `@ lib/app/auth.ex::4
+Narration.
+`)
+
+	out, err := runTour(t, "parse", filepath.Join(dir, "example.tour"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v\noutput:\n%s", err, out)
+	}
+	if !strings.Contains(out, "lib/app/auth.ex:1:4") {
+		t.Errorf("expected the slide to be listed at line 1 with the scroll offset kept, got:\n%s", out)
+	}
+}
+
+// @ft:37
+func TestParse_EmptyScrollOffsetIsSameAsNoScrollOffset(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "lib", "app", "auth.ex"), strings.Repeat("line\n", 50))
+	writeFile(t, filepath.Join(dir, "example.tour"), `@ lib/app/auth.ex:42:
+Narration.
+`)
+
+	out, err := runTour(t, "parse", filepath.Join(dir, "example.tour"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v\noutput:\n%s", err, out)
+	}
+	if !strings.Contains(out, "lib/app/auth.ex:42") {
+		t.Errorf("expected the slide to be listed at line 42, got:\n%s", out)
+	}
+	if strings.Contains(out, "lib/app/auth.ex:42:") {
+		t.Errorf("expected no trailing scroll offset when it was left empty, got:\n%s", out)
+	}
+}
+
+// @ft:38
+func TestParse_NonDigitContentInLocationFieldIsMalformed(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "example.tour"), `@ lib/app/auth.ex:42:abc
+Narration.
+`)
+
+	out, err := runTour(t, "parse", filepath.Join(dir, "example.tour"))
+	if err == nil {
+		t.Fatalf("expected an error, got none\noutput:\n%s", out)
+	}
+	if !strings.Contains(out, "line 1") {
+		t.Errorf("expected error to name the tour file's own line number (1), got:\n%s", out)
+	}
+}
+
 // @ft:12
 func TestParse_NoColorCodesWhenNotATerminal(t *testing.T) {
 	dir := t.TempDir()

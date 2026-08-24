@@ -37,6 +37,10 @@ without needing any other tour-specific knowledge.
   line of a slide).
 - The `file:line` rules: path relative to the tour file, forward
   slashes, 1-indexed line number.
+- The optional `:scroll` field (per [SCROLL.md](./SCROLL.md)) and when
+  to use it — a rare override, not something most slides need, so the
+  instructions steer an agent toward omitting it by default rather than
+  reaching for it on every slide.
 - A minimal worked example (a two-slide tour) — an example is often more
   directly usable by a generating agent than the prose rules alone.
 

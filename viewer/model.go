@@ -197,8 +197,9 @@ func (m Model) jumpCmd(idx int) tea.Cmd {
 	}
 	nv := m.nvim
 	line := slide.Line
+	scroll := slide.Scroll
 	return func() tea.Msg {
-		return jumpResultMsg{err: nv.Jump(abs, line)}
+		return jumpResultMsg{err: nv.Jump(abs, line, scroll)}
 	}
 }
 

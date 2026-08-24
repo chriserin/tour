@@ -82,3 +82,28 @@ Feature: tour parse
     When  I run `tour parse` on it with output piped, not to a terminal
     Then  the output contains no ANSI escape codes
 
+  @ft:35
+  Scenario: A location with a scroll offset is shown as written
+    Given a .tour file with a slide written as "@ lib/app/auth.ex:42:4"
+    When  I run `tour parse` on it
+    Then  the listed location for that slide is "lib/app/auth.ex:42:4"
+
+  @ft:36
+  Scenario: An empty line number with a scroll offset defaults to line 1
+    Given a .tour file with a slide written as "@ lib/app/auth.ex::4"
+    When  I run `tour parse` on it
+    Then  the slide is listed pointing at line 1
+
+  @ft:37
+  Scenario: An empty scroll offset is the same as no scroll offset
+    Given a .tour file with a slide written as "@ lib/app/auth.ex:42:"
+    When  I run `tour parse` on it
+    Then  the slide is listed pointing at line 42
+
+  @ft:38
+  Scenario: Non-digit content in a location field is malformed
+    Given a .tour file with a slide written as "@ lib/app/auth.ex:42:abc"
+    When  I run `tour parse` on it
+    Then  it reports a structural error naming the line in the tour file
+    And   it exits with a non-zero status
+

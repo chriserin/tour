@@ -14,11 +14,16 @@ import (
 // at. Index is the slide's 1-based position among *all* blocks in the tour
 // file, including any that failed to parse — a malformed block still has an
 // unambiguous position in the tour, even though its content doesn't.
+//
+// Scroll is the number of lines of context to leave visible above Line when
+// jumping to it, per design/SCROLL.md — nil when the slide didn't specify
+// one, distinct from a specified 0.
 type Slide struct {
-	Index int
-	File  string
-	Line  int
-	Text  string
+	Index  int
+	File   string
+	Line   int
+	Scroll *int
+	Text   string
 }
 
 // ParseError is a structural problem found while parsing a tour file. Slide
@@ -37,7 +42,19 @@ func (e ParseError) Error() string {
 
 const separator = "---"
 
-var locationRe = regexp.MustCompile(`^@ ([^:]+)(?::(\d+))?$`)
+// locationRe matches "@ file", "@ file:line", and "@ file:line:scroll". The
+// line and scroll groups use \d*, not \d+, so an empty field (a colon with
+// nothing after it, or nothing before the next colon) is a valid capture
+// that resolves to a default below, rather than a non-match — see
+// implementation/SCROLL.md's Grammar section for why an empty field
+// defaults the same way an absent one does.
+var locationRe = regexp.MustCompile(`^@ (?P<file>[^:]+)(?::(?P<line>\d*))?(?::(?P<scroll>\d*))?$`)
+
+var (
+	locationFile   = locationRe.SubexpIndex("file")
+	locationLine   = locationRe.SubexpIndex("line")
+	locationScroll = locationRe.SubexpIndex("scroll")
+)
 
 // Parse reads a tour file and returns its slides in order, along with every
 // structural error found. It never stops at the first error — a malformed
@@ -100,17 +117,27 @@ func parseBlock(lines []string, blockStart, index int) (*Slide, *ParseError) {
 		return nil, &ParseError{Slide: index, Line: locLineNum, Msg: "malformed @ file:line"}
 	}
 
-	file := m[1]
+	file := m[locationFile]
+
 	line := 1
-	if m[2] != "" {
-		n, err := strconv.Atoi(m[2])
+	if lineStr := m[locationLine]; lineStr != "" {
+		n, err := strconv.Atoi(lineStr)
 		if err != nil {
 			return nil, &ParseError{Slide: index, Line: locLineNum, Msg: "line number too large"}
 		}
 		line = n
 	}
 
+	var scroll *int
+	if scrollStr := m[locationScroll]; scrollStr != "" {
+		n, err := strconv.Atoi(scrollStr)
+		if err != nil {
+			return nil, &ParseError{Slide: index, Line: locLineNum, Msg: "scroll offset too large"}
+		}
+		scroll = &n
+	}
+
 	text := strings.TrimSpace(strings.Join(lines[idx+1:], "\n"))
 
-	return &Slide{Index: index, File: file, Line: line, Text: text}, nil
+	return &Slide{Index: index, File: file, Line: line, Scroll: scroll, Text: text}, nil
 }

@@ -53,3 +53,13 @@ in parallel.
 section and cobra's built-in completion generation). Independent of
 phases 1–3 beyond the scaffolding from phase 1; can be built in
 parallel with either.
+
+## 5. Explicit scroll position — done
+
+The optional `@ file:line:scroll` field and its effect on jumps (per
+[design/SCROLL.md](design/SCROLL.md) and
+[implementation/SCROLL.md](implementation/SCROLL.md)): grammar and
+`Slide.Scroll` in `tourfile.Parse`, `NvimClient.Jump`'s new `scroll`
+parameter and `winrestview`-based positioning, and `jumpCmd` passing
+it through. Depends on phase 1 (parsing) and phase 2 (the Neovim RPC
+client and jump path) — no new CLI surface of its own.
