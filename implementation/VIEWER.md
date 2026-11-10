@@ -198,20 +198,27 @@ opened in Neovim are guaranteed to be the same path, computed once.
 
 ## Locating Neovim
 
-Implements the three-step lookup from design's "Locating Neovim":
+Implements the lookup from design's "Locating Neovim":
 
 1. `os.Getenv("NVIM")`.
-2. If empty, shell out: `tmux show-environment NVIM` via `os/exec`,
+2. If `$HERDR_WORKSPACE_ID` is set, shell out to `herdr workspace get
+   <id>`, read `result.workspace.label` from its JSON, and use
+   `/tmp/nvim-<label>.sock` if `os.Stat` finds it. Any failure (no
+   herdr, bad JSON, empty label, missing socket) falls through.
+   Considered: deriving the label from `$HERDR_*` env vars alone — not
+   possible, only the workspace id is exported, and labels are
+   renameable, so it has to be asked for at startup.
+3. If still empty, shell out: `tmux show-environment NVIM` via `os/exec`,
    parsing its `NVIM=<value>` stdout line. A non-zero exit (no tmux, no
    session, variable unset) is treated as "not found," not an error —
    falling through to the next step is expected behavior, not a failure
    mode.
-3. `--nvim` flag value, if given.
+4. `--nvim` flag value, if given.
 
 This is implemented as plain sequential Go, not a strategy/lookup-chain
-abstraction — three fixed steps checked in order don't need a pluggable
-interface, and design explicitly scoped this to exactly these three
-sources (no fourth convention to plan for).
+abstraction — a few fixed steps checked in order don't need a pluggable
+interface. (Design originally scoped this to three sources; Herdr was
+added later as a fourth, which was a one-function change.)
 
 ## Bubble Tea model
 
@@ -314,13 +321,16 @@ type Model struct {
   case is tested directly and unconditionally (`t.Setenv("NVIM", …)`
   always wins regardless of ambient state). The flag-wins and
   nothing-found cases are skipped, with a stated reason, whenever the
-  test process's own environment already has tmux `$NVIM` set — which
+  test process's own environment already has tmux `$NVIM` set (Herdr is
+  isolated by clearing `$HERDR_WORKSPACE_ID` instead) — which
   is true in this project's own dev session (launched via `nv`), so
   asserting "nothing was found" unconditionally would make the test's
   result depend on the environment it happens to run in rather than on
   the code. No interface was introduced to mock the `tmux` shell-out
   purely to avoid this — three fixed lookup steps didn't seem to
   warrant one, per this doc's original reasoning in "Locating Neovim."
+  Herdr's JSON parsing and socket-path formation are tested as pure
+  helpers (`parseHerdrWorkspaceLabel`, `herdrNvimSocketPath`).
 - **Bubble Tea model** (`viewer/model_test.go`): `Update` is tested
   directly as a pure function against key messages built with
   `tea.KeyPressMsg{Code: r}`, asserting resulting `current`/scroll

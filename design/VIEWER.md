@@ -72,7 +72,13 @@ checking, in order:
    specific signal available: it names the exact Neovim instance the
    viewer is literally running inside of, so it always wins when
    present.
-2. **`$NVIM` in the tmux session environment** — set once, at session
+2. **The Herdr workspace's socket** — inside Herdr (`$HERDR_WORKSPACE_ID`
+   set), the viewer asks Herdr for the current workspace's label and
+   uses `/tmp/nvim-<label>.sock`, the socket a launcher starts Neovim on
+   for that workspace. Skipped if that socket doesn't exist yet. Like
+   tmux below, this lets a sibling pane find Neovim without being its
+   child.
+3. **`$NVIM` in the tmux session environment** — set once, at session
    scope, by a launcher shell function (`nv`) that starts Neovim with
    `nvim --listen /tmp/nvim-$(tmux display-message -p '#S').sock` and
    records that same path with `tmux setenv NVIM ...`. Any other pane in
@@ -81,11 +87,11 @@ checking, in order:
 NVIM`, without the viewer needing to re-derive the socket path
    itself. This is what makes a separate tmux pane work without being a
    child of Neovim at all.
-3. **`--nvim <address>`, given explicitly** — always wins if passed, and
-   is the only option outside tmux, where there is no session to key
-   off.
+4. **`--nvim <address>`, given explicitly** — used if nothing above
+   matched, and is the only option outside Herdr and tmux, where there
+   is no session to key off.
 
-Steps 1 and 2 share the same variable name deliberately: precedence
+Steps 1 and 3 share the same variable name deliberately: precedence
 falls out of ordinary environment inheritance rather than needing
 explicit conflict-resolution logic — a pane's own process env is simply
 checked before tmux's session-scoped one.

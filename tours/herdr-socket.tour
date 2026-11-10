@@ -1,0 +1,26 @@
+@ ../design/VIEWER.md:75:11
+Design first: Herdr becomes step 2, between process $NVIM and tmux.
+---
+@ ../viewer/locate.go:34
+LocateNvim gains one call — process $NVIM still wins, then Herdr, tmux, flag.
+---
+@ ../viewer/locate.go:64:1
+Only runs inside Herdr; asks herdr for the workspace by id.
+---
+@ ../viewer/locate.go:78
+Socket must already exist — otherwise fall through, Neovim isn't up yet.
+---
+@ ../viewer/locate.go:86
+The naming convention: /tmp/nvim-<label>.sock.
+---
+@ ../viewer/locate.go:92:2
+Label comes from `herdr workspace get`'s JSON; empty label is a miss.
+---
+@ ../viewer/locate_test.go:40
+Existing tests clear $HERDR_WORKSPACE_ID so the live workspace can't leak in.
+---
+@ ../viewer/locate_test.go:64
+Parsing and path-building tested as pure helpers — no herdr needed.
+---
+@ ../implementation/VIEWER.md:204
+Why ask herdr at all: only the workspace id is exported, and labels can be renamed.

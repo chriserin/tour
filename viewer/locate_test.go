@@ -40,6 +40,7 @@ func TestLocateNvim_ProcessEnvWins(t *testing.T) {
 func TestLocateNvim_FlagUsedWhenNothingElsePresent(t *testing.T) {
 	skipIfTmuxHasNvim(t)
 	t.Setenv("NVIM", "")
+	t.Setenv("HERDR_WORKSPACE_ID", "")
 
 	addr, err := LocateNvim("/tmp/from-flag.sock")
 	if err != nil {
@@ -53,8 +54,29 @@ func TestLocateNvim_FlagUsedWhenNothingElsePresent(t *testing.T) {
 func TestLocateNvim_NoSourceReturnsErrNoNvimSession(t *testing.T) {
 	skipIfTmuxHasNvim(t)
 	t.Setenv("NVIM", "")
+	t.Setenv("HERDR_WORKSPACE_ID", "")
 
 	if _, err := LocateNvim(""); err != ErrNoNvimSession {
 		t.Errorf("expected ErrNoNvimSession when nothing is set, got %v", err)
+	}
+}
+
+func TestParseHerdrWorkspaceLabel(t *testing.T) {
+	out := []byte(`{"id":"cli:workspace:get","result":{"type":"workspace_info","workspace":{"label":"tour","workspace_id":"w8"}}}`)
+
+	label, ok := parseHerdrWorkspaceLabel(out)
+	if !ok || label != "tour" {
+		t.Errorf("expected label %q, got %q (ok=%v)", "tour", label, ok)
+	}
+	if got := herdrNvimSocketPath(label); got != "/tmp/nvim-tour.sock" {
+		t.Errorf("expected /tmp/nvim-tour.sock, got %q", got)
+	}
+}
+
+func TestParseHerdrWorkspaceLabel_RejectsMissingLabel(t *testing.T) {
+	for _, out := range []string{`not json`, `{"result":{"workspace":{}}}`} {
+		if label, ok := parseHerdrWorkspaceLabel([]byte(out)); ok {
+			t.Errorf("expected no label from %q, got %q", out, label)
+		}
 	}
 }
