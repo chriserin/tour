@@ -11,7 +11,7 @@ import (
 // release/tagging pipeline yet for either of those to reflect, and a
 // constant needs no toolchain support to print exactly what it's set to.
 // Bump by hand alongside each release.
-const version = "0.1.1"
+const version = "0.1.2"
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
